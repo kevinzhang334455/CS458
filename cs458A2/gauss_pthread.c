@@ -108,17 +108,17 @@ int initMatrix(const char *fname)
 void initRHS(int nsize, int begin, int end)
 {
     int i, j;
-    begin = begin-1;
+    begin = begin - 1;
     end = end-1;
     for (i = 0; i < nsize; i++) {
-	X__[i] = i+1;
+	   X__[i] = i + 1;
     }
 //    barrier (task_num);
     for (i = 0; i < nsize; i++) {
-	R[i] = 0.0;
-	for (j = 0; j < nsize; j++) {
-	    R[i] += matrix[i][j] * X__[j];
-	}   
+	   R[i] = 0.0;
+	   for (j = 0; j < nsize; j++) {
+	       R[i] += matrix[i][j] * X__[j];
+	   }   
     }
 }
 
@@ -127,10 +127,10 @@ void initRHS(int nsize, int begin, int end)
 void initResult(int nsize, int begin, int end)
 {
     int i;
-    begin = begin-1;
-    end = end-1;
+    begin = begin - 1;
+    end = end - 1;
     for (i = begin; i <= end; i++) {
-	X[i] = 0.0;
+	   X[i] = 0.0;
     }
     barrier (task_num);
 }
@@ -143,10 +143,10 @@ void getPivot(int nsize, int currow)
     int i, pivotrow;
 
     pivotrow = currow;
-    for (i = currow+1; i < nsize; i++) {
-	if (fabs(matrix[i][currow]) > fabs(matrix[pivotrow][currow])) {
-	    pivotrow = i;
-	}
+    for (i = currow + 1; i < nsize; i++) {
+	   if (fabs(matrix[i][currow]) > fabs(matrix[pivotrow][currow])) {
+	       pivotrow = i;
+	   }
     }
 
     if (fabs(matrix[pivotrow][currow]) == 0.0) {
@@ -176,31 +176,27 @@ void computeGauss(int nsize, int task_id)
     int i, j, k;
     double pivotval;
     int begin, end;
-
-    
     for (i = 0; i < nsize; i++) {
-    num_iter = nsize - (i+1);
-    begin = (num_iter * task_id) / task_num + 1;
-    end = (num_iter * (task_id + 1)) / task_num;
-    barrier(task_num);
-    if (task_id == 0)
-    {
-        if (i==9)
-           printf("matrix[9][9] = %f, iteration = %d\n", matrix[9][9], i);    
-	getPivot(nsize,i);        
-	/* Scale the main row. */
-        pivotval = matrix[i][i];
-	if (pivotval != 1.0) {
-	    matrix[i][i] = 1.0;
-	    for (j = i + 1; j < nsize; j++) {
-		matrix[i][j] /= pivotval;
-	    }
-	    R[i] /= pivotval;
-	}
-     }
-     barrier (task_num);
-     printf("proc %d: begin = %d, end = %d\n", proc_id, begin ,end);
-	/* Factorize the rest of the matrix. */
+        num_iter = nsize - i - 1;
+        begin = (num_iter * task_id) / task_num + 1;
+        end = (num_iter * (task_id + 1)) / task_num;
+        barrier(task_num);
+        if (task_id == 0) {
+            if (i==9) printf("matrix[9][9] = %f, iteration = %d\n", matrix[9][9], i);    
+            getPivot(nsize,i);        
+	        /* Scale the main row. */
+            pivotval = matrix[i][i];
+            if (pivotval != 1.0) {
+                matrix[i][i] = 1.0;
+                for (j = i + 1; j < nsize; j++) {
+                    matrix[i][j] /= pivotval;
+                }
+                R[i] /= pivotval;
+            }
+        }
+        barrier (task_num);
+        printf("proc %d: begin = %d, end = %d\n", proc_id, begin ,end);
+        /* Factorize the rest of the matrix. */
         for (j = begin + i; j <= end + i; j++) {
             pivotval = matrix[j][i];
             matrix[j][i] = 0.0;
@@ -212,8 +208,8 @@ void computeGauss(int nsize, int task_id)
             R[j] -= pivotval * R[i];
             
         }
-     barrier (task_num);
-     }
+        barrier (task_num);
+    }
 }
 
 
@@ -242,9 +238,7 @@ void solveGauss(int nsize)
 
 /************************************************************************/
 
-void *
-work_thread (void *lp)
-{
+void *work_thread (void *lp) {
     int task_id = *((int *) lp);
     int begin, end;
     struct timeval start, finish;
@@ -252,8 +246,7 @@ work_thread (void *lp)
     /*get the divided task*/
     begin = (nsize * task_id) / task_num + 1;
     end = (nsize * (task_id + 1)) / task_num;
-    if(task_id==0)
-        gettimeofday (&start, NULL);
+    if(task_id==0) gettimeofday (&start, NULL);
     fprintf (stderr, "thread %d: begin %d, end %d\n", task_id, begin, end);
 
     barrier (task_num);
@@ -268,16 +261,15 @@ work_thread (void *lp)
     barrier (task_num);
 
     /* Gauss computation done */
-    if(task_id==0)
-    {
-	/* Since there are dependencies in computing equation stage(the upper part need the results of upper part), it should be done by thread 0 solely. */
-	solveGauss(nsize);
+    if(task_id==0) {
+	/* Since there are dependencies in computing equation stage
+    the upper part need the results of upper part), it should be done by thread 0 solely. */
+        solveGauss(nsize);
         gettimeofday (&finish, NULL);
         printf ("Elapsed time: %.2f seconds\n",
 	        (((finish.tv_sec * 1000000.0) + finish.tv_usec) -
 	        ((start.tv_sec * 1000000.0) + start.tv_usec)) / 1000000.0);
-     }
-	
+    }
 }
 
 int main (int argc, char *argv[])
@@ -321,21 +313,20 @@ int main (int argc, char *argv[])
     for (i = 1; i < task_num; i++)
         pthread_join (tid[i], NULL);
 
-     FILE *result;
-     result = fopen ("result.txt", "w");
-     for (i=0; i<nsize; i++){
-       fprintf (result, "X[%d] = %f \n", i, X[i]);
-     }
+    FILE *result;
+    result = fopen ("result.txt", "w");
+    for (i=0; i<nsize; i++){
+        fprintf (result, "X[%d] = %f \n", i, X[i]);
+    }
     error = 0.0;
 
     for (i = 0; i < nsize; i++) {
- 
-	double error__ = (X__[i]==0.0) ? 1.0 : fabs((X[i]-X__[i])/X__[i]);
-	if (error < error__) {
-	    error = error__;
-	}
+        double error__ = (X__[i]==0.0) ? 1.0 : fabs((X[i]-X__[i])/X__[i]);
+        if (error < error__) {
+            error = error__;
+        }
     }
     fprintf(stdout, "Error: %6.3f\n", error);
-     return 0;
+    return 0;
 }
     
