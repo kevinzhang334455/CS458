@@ -94,13 +94,11 @@ int initMatrix(const char *fname)
 
     /* Parse the rest of the input file to fill the matrix. */
     for (;;) {
-	p2 = fgets(buffer, 1024, file);
-	sscanf(buffer, "%d %d %lf", &l1, &l2, &d);
-	if (l1 == 0) break;
-
-	matrix[l1-1][l2-1] = d;
+	   p2 = fgets(buffer, 1024, file);
+	   sscanf(buffer, "%d %d %lf", &l1, &l2, &d);
+	   if (l1 == 0) break;
+	   matrix[l1-1][l2-1] = d;
     }
-
     fclose(file);
     return nsize;
 }
